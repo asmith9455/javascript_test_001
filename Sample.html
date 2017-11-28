@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+	
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" type="text/css" href="SampleStylesheet.css" />
+		<script src="http://code.createjs.com/createjs-2013.12.12.min.js"></script>
+		<title>Sample Doc</title>
+
+		<script language = "javascript">
+
+		//Declare global? variables for the stage and for the canvas;
+		var stage;
+		var canvas;
+		var prevWidth;
+		var newWidth;
+		var myShape;
+
+
+		function init()
+		{
+
+			//Reference the canvas created in the body of html file;
+			main_canvas = document.getElementById("myCanvas"); 
+
+			//Resise the canvas width and height;
+			main_canvas.width = 0.99 * window.innerWidth;
+			main_canvas.height = 0.99 * window.innerHeight;
+			newWidth=window.innerWidth;
+			
+			//Add an event listener that fires upon window resize
+			//Funcion resize will adjust canvas width
+			window.addEventListener('resize', resizeCanvas, false);
+
+			//assign the canvas to the stage variable 
+			stage = new createjs.Stage(main_canvas);
+
+			//create a graphic
+			var myGraphic = new createjs.Graphics().beginFill("#00FF00").drawRoundRect(0,0,100,100, 25);
+			// make a shape that includes the graphic
+			myShape = new createjs.Shape(myGraphic);
+			//add the test graphic to the stage;
+			stage.addChild(myShape);
+			myShape.x=-100;
+			myShape.y=-100;
+			myShape.alpha=0;
+
+			animateMainMenu();
+		}
+
+		function resizeCanvas(event){
+			//the function resizes the main canvas width to the current innerWidth and innerHeight 1584 782.1
+			
+			main_canvas.width = 0.99 * window.innerWidth;
+			prevWidth=newWidth;
+			newWidth=main_canvas.width;
+			main_canvas.height = 0.99 * window.innerHeight;
+
+			resizeTestObject();
+		}
+
+		function resizeTestObject(){
+			myShape.scaleX = newWidth/prevWidth;
+			myShape.scaleY = newWidth/prevWidth;
+			stage.addChild(myShape);
+			stage.update();
+		}
+
+		function shapeWidth(obj){
+			var width;
+
+		}
+
+		function animateMainMenu(){
+			createjs.Tween.get(myShape).to({x:200}, 2000, createjs.Ease.bounceOut);
+			createjs.Tween.get(myShape).to({y:200}, 2000, createjs.Ease.bounceOut);
+			createjs.Tween.get(myShape).to({alpha:1}, 4000);
+			createjs.Ticker.addEventListener("tick", tick);
+		}
+
+		function tick(event)
+		{
+			stage.update();
+		}
+
+
+		/*function resize() 
+		{
+           main_canvas.width = window.innerWidth;
+           main_canvas.height = window.innerHeight;  
+           fillCan.width=main_canvas.width;
+           fillCan.height=main_canvas.height; 
+           stage.update();
+		}*/
+
+		</script>
+
+	</head>
+
+	<body bgcolor="#000000" onload="init()">
+		
+		
+
+		<canvas id = "myCanvas" width = "500" height="500" x="0" y = "0">
+			Alternative Content
+		</canvas>
+		<!-- <input type="button" value ="Test Button" id = "testBtn" onclick = "Alertme()"/> 	-->
+		
+	<body>
+</html>

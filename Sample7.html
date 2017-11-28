@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Sample7</title>
+
+		<!--Reference Createjs Libraries_______________________-->
+		<script src="http://code.createjs.com/createjs-2013.12.12.min.js"></script>
+		<script src="http://code.createjs.com/movieclip-0.7.1.min.js"></script>
+		
+
+		<!--Start Javascript/Creatjs Code______________________-->
+		<script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//GLOBAL Variables_________________________________________
+		//general
+		var stage;
+		var homeBtn;
+		var main_canvas;
+		var aniWait = 1000;
+
+		//main menu
+		var mm_objArray=[];
+
+		//calculator
+		var calc_objArray=[];
+		var calc_processArray=[];
+		var calc_currentProcess = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//INITIALIZE CANVAS_________________________________________
+			function init(){
+				stage = new createjs.Stage("main_canvas");
+				main_canvas = document.getElementById("main_canvas");
+				main_canvas.width = window.innerWidth;
+				main_canvas.height = window.innerHeight;
+				stage.enableMouseOver(10);
+				createjs.Ticker.addEventListener("tick", stage);
+				createjs.Ticker.setFPS(50)
+				
+				define_objects();	
+				mm_create();			
+
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//DEFINE INTERFACE OBJECTS________________________________
+			function define_objects(){
+
+			//Preferences
+			var calc_btnMainCol = "#303030";
+			var calc_btnTextCol = "#FFFFFF";
+			var calc_displayTextCol = "#FFFFFF";
+
+
+			//Main Menu Objects (mm_...)
+				mm_objArray[0] = createButton("mm_btn_calculator", 10,10,200,100,calc_btnMainCol,"Calculator", calc_btnTextCol, "32px Arial", calc_create);
+
+			//Calculator Objects (calc_...)
+
+				//Some useful variables for setting object positions
+				var xShift = window.innerWidth/2-100;
+				var yShift= window.innerHeight/2-100;
+				var calc_btnWidth = 75;
+				var calc_btnHeight = 75;
+				var calc_btnPadding = 1;
+				var btnShiftY;
+				var btnShiftX;
+				var calc_btn_prefix="calc_btn_";
+				var totalX;
+				var totalY;
+
+				//Home button
+				calc_objArray[0] = createButton("calc_btn_home", 10 ,window.innerHeight-110,100,100,calc_btnMainCol,"Home", calc_btnTextCol, "32px Arial", mm_create);
+				//Clear Display Button
+				calc_objArray[1] = createButton("calc_btn_clear", (calc_btnWidth + calc_btnPadding)*-1 + xShift,	(calc_btnHeight + calc_btnPadding) * 3 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"CLR", calc_btnTextCol, "35px Arial", calc_clearDisplay);
+
+				//Number Buttons (0-9)
+				for (i=0;i<10;i++){
+					
+					//each row has a unique x and y shift
+					if(i==0){
+						btnShiftY = (calc_btnHeight + calc_btnPadding) * 3;
+						btnShiftX = 0;
+					}
+					else if(i<4 && i>0){
+						btnShiftY = (calc_btnHeight + calc_btnPadding) * 2;
+						btnShiftX = (calc_btnWidth + calc_btnPadding);
+					}
+					else if(i<7 && i>3){
+						btnShiftY = (calc_btnHeight + calc_btnPadding);
+						btnShiftX = (calc_btnWidth + calc_btnPadding)*4;
+					}
+					else{
+						btnShiftY = 0;
+						btnShiftX = (calc_btnWidth + calc_btnPadding)*7;
+					}
+					//Determine the final positions for the number buttons 
+					totalY =yShift + btnShiftY;
+					totalX = (calc_btnWidth + calc_btnPadding)*i + xShift - btnShiftX;
+					calc_objArray[i+2]=createButton(calc_btn_prefix+i, totalX, totalY,calc_btnWidth,calc_btnHeight,calc_btnMainCol,i, calc_btnTextCol, "60px Arial", calc_btnpress);
+				}
+				//Calculator 'Display'
+				calc_objArray[12] = new createjs.Text("This is the display", "20px Arial", calc_displayTextCol); calc_objArray[12].x =xShift/2 ; calc_objArray[12].y = yShift;calc_objArray[12].textAlign="center";calc_objArray[12].textBaseline="middle";calc_objArray[12].lineWidth = xShift-10;
+
+				//Mathematical Operators
+				calc_objArray[13]=createButton(calc_btn_prefix+"+", (calc_btnWidth + calc_btnPadding)*3 + xShift, yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"+", calc_btnTextCol, "60px Arial", calc_btnpress);
+				calc_objArray[14]=createButton(calc_btn_prefix+"-", (calc_btnWidth + calc_btnPadding)*3 + xShift, (calc_btnHeight + calc_btnPadding) + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"-", calc_btnTextCol, "60px Arial", calc_btnpress);
+				calc_objArray[15]=createButton(calc_btn_prefix+"*", (calc_btnWidth + calc_btnPadding)*3 + xShift, (calc_btnHeight + calc_btnPadding)*2 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"*", calc_btnTextCol, "60px Arial", calc_btnpress);
+				calc_objArray[16]=createButton(calc_btn_prefix+"/", (calc_btnWidth + calc_btnPadding)*3 + xShift, (calc_btnHeight + calc_btnPadding)*3 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"/", calc_btnTextCol, "60px Arial", calc_btnpress);
+				calc_objArray[17]=createButton(calc_btn_prefix+"=", (calc_btnWidth + calc_btnPadding)*2 + xShift, (calc_btnHeight + calc_btnPadding)*3 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"=", calc_btnTextCol, "60px Arial", calc_evaluateExpression);
+				calc_objArray[18]=createButton(calc_btn_prefix+"dec", (calc_btnWidth + calc_btnPadding) + xShift, (calc_btnHeight + calc_btnPadding)*3 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,".", calc_btnTextCol, "60px Arial", calc_btnpress);
+				calc_objArray[19]=createButton(calc_btn_prefix+"leftParen", (calc_btnWidth + calc_btnPadding)*-1 + xShift, (calc_btnHeight + calc_btnPadding)*1 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,"(", calc_btnTextCol, "60px Arial", calc_btnpress);
+				calc_objArray[20]=createButton(calc_btn_prefix+"rightParen", (calc_btnWidth + calc_btnPadding)*-1 + xShift, (calc_btnHeight + calc_btnPadding)*2 + yShift,calc_btnWidth,calc_btnHeight,calc_btnMainCol,")", calc_btnTextCol, "60px Arial", calc_btnpress);
+
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//MAIN MENU STUFF***********************************************************
+
+		//CREATE MAIN MENU INTERFACE______________________________
+			function mm_create(){
+				removeDisplayObjects();
+				animateToStage(mm_objArray);
+				stage.update();
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//CALCULATOR FUNCTIONS***************************************************
+		//_______________________________________________________________________
+
+			//CREATE CALCULATOR INTERFACE_______________________________
+			function calc_create(){
+				removeDisplayObjects();
+				animateToStage(calc_objArray);
+				stage.update();
+			}
+	
+			function calc_btnpress(passedObj){
+				var idLength;
+				var btnPressed = "";
+
+				idLength = passedObj.id.length;
+
+				for (i=9;i<idLength;i++){
+					btnPressed += passedObj.id.charAt(i);
+				}
+				calc_updateProcessArray(btnPressed);
+			}
+
+			function calc_updateProcessArray(btnPressed){
+
+				var btnPressedType = calc_returnInputType(btnPressed);
+				var workingArray = [];
+
+				if (btnPressed=="dec"){
+					btnPressed=".";
+				}
+				else if (btnPressed=="leftParen"){
+					btnPressed="(";
+				}
+				else if (btnPressed=="rightParen"){
+					btnPressed=")";
+				}
+
+				if (calc_processArray[calc_currentProcess]!= null){
+					
+					workingArray = calc_processArray[calc_currentProcess];
+					
+				}
+		
+				var displayArrayLength = workingArray.length;
+				
+			
+
+				//If display length is equal to 0
+				if (displayArrayLength==0 && btnPressedType=="number"){
+					if (btnPressed=="."){
+						workingArray.push("0"+btnPressed);
+					}
+
+					else{
+						workingArray.push(btnPressed);
+					}
+				}
+
+
+				//If display length is not equal to zero
+				if (displayArrayLength!=0){
+
+					var currentLastType = calc_returnInputType(workingArray[displayArrayLength-1].charAt(0));
+				}
+
+				if (btnPressedType=="number" && currentLastType == "number"){
+					workingArray[displayArrayLength-1]+=btnPressed;
+				}	
+
+				else if ((btnPressedType=="number" && currentLastType == "operator")||(btnPressedType=="operator" && currentLastType == "number")){
+
+					if (btnPressed=="."){
+						btnPressed="0.";
+					}
+
+					workingArray.push(btnPressed);
+				}
+
+				if (btnPressedType == "paren"){
+					workingArray.push(btnPressed);
+				}
+
+
+				calc_processArray[calc_currentProcess] = workingArray;
+
+				calc_updateDisplay();
+				
+			}
+
+			function calc_updateDisplay(){
+				calc_objArray[12].text = ""
+
+				for (i=0;i<calc_processArray.length;i++){
+					for (j=0;j<calc_processArray[i].length;j++){
+						calc_objArray[12].text+=calc_processArray[i][j]+" "
+					}
+					calc_objArray[12].text+="\n"
+				}
+			}
+
+			function calc_evaluateExpression(){
+
+				var openIndex = 0;
+				var closeIndex = 0;
+				var arrayToSum = [];
+				var exprToSimplify = 0;
+
+				while(openIndex!==-1){
+
+					openIndex=workingArray.lastIndexOf("(");
+
+					for (i=openIndex;i<workingArray.length;i++){
+						if(workingArray[i]==")"){
+							closeIndex=i;
+							break;
+						}
+					}
+				
+					workingArray.splice(calc_simplifyExpression(, , op1*op2);
+				
+					
+				}
+				var ans = calc_simplifyExpression(calc_processArray[calc_currentProcess]);
+				calc_processArray[calc_currentProcess].push("=");
+				calc_processArray[calc_currentProcess].push(ans);
+				calc_updateProcessArray(ans);
+				calc_currentProcess++;
+			}
+
+			function calc_simplifyExpression(arrayIn){
+			var opIndex;
+			var op1;
+			var op2;
+			var ans;
+			var workingArray = [];
+			for (i=0; i < calc_processArray[calc_currentProcess].length; i++){
+				workingArray[i] = arrayIn[i];
+			}
+			
+			while(opIndex!==-1){
+
+				opIndex=workingArray.indexOf("*");
+
+				if(opIndex!=-1){
+				op1 = workingArray[opIndex-1];
+				op2 = workingArray[opIndex+1];
+				
+				workingArray.splice(opIndex-1, 3, op1*op2);
+				
+				}
+			}
+			opIndex = 0;
+			while(opIndex!==-1){
+
+				opIndex=workingArray.indexOf("/");
+
+				if(opIndex!=-1){
+				op1 = workingArray[opIndex-1];
+				op2 = workingArray[opIndex+1];
+				
+				workingArray.splice(opIndex-1, 3, op1/op2);
+				
+				}
+			}
+			opIndex = 0;
+			while(opIndex!==-1){
+
+				opIndex=workingArray.indexOf("+");
+
+				if(opIndex!=-1){
+				op1 = workingArray[opIndex-1];
+				op2 = workingArray[opIndex+1];
+				
+				workingArray.splice(opIndex-1, 3, (+op1)+(+op2));
+				
+				}
+			}
+			opIndex = 0;
+			while(opIndex!==-1){
+
+				opIndex=workingArray.indexOf("-");
+
+				if(opIndex!=-1){
+				op1 = workingArray[opIndex-1];
+				op2 = workingArray[opIndex+1];
+				
+				workingArray.splice(opIndex-1, 3, (+op1)-(+op2));
+				
+				}
+			}
+			return workingArray[0]
+			}
+
+			function calc_clearDisplay(passedObj){
+				if (calc_processArray[calc_currentProcess] != null){
+					calc_processArray[calc_currentProcess].splice(0, calc_processArray[calc_currentProcess].length);
+					calc_updateDisplay();
+				}
+
+			}
+
+			function calc_returnInputType(stringIn){
+				if (stringIn<10 || stringIn=="dec"){
+					return("number");
+				}
+				else if (stringIn=="leftParen" || stringIn == "rightParen"){
+					return("paren");
+				}
+				else{
+					return("operator");
+				}
+			}
+			//______________________________________________________________
+			//**************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		//USEFULL CLASSES
+			//consider a createButton class that allows the caller to define shape
+			function createButton(uniqueID, xPos, yPos, width, height, color, text, textColor, font, onClickFunction){
+				//uniqueID: string, xPos: int, yPos: int, width: int, height: int, color: string, text:String, textColor: string, font: string(#px Family), onClickFunction
+				//function onBtnClick(passedObj){}
+
+				var btn = new createjs.MovieClip(null, null,false, {up:0,over:10,down:20,out:0}).set({x:xPos, y:yPos});
+
+				btn.id=uniqueID;
+				
+				//var btnOutline = new createjs.Shape(new createjs.Graphics().beginFill(textColor).drawRect(0,0,width,height));
+				var btnShape = new createjs.Shape(new createjs.Graphics().beginFill(color).drawRect(1,1,width/*-2*/,height/*-2*/));
+
+				var btnText = new createjs.Text(text, font, textColor); btnText.x = width/2; btnText.y=height/2; btnText.textAlign="center";btnText.textBaseline="middle";btnText.maxWidth=width;
+
+				var btnCont = new createjs.Container(); btnCont.addChild(/*btnOutline,*/ btnShape, btnText); btnCont.x = 0; btnCont.y=0;
+
+				btn.timeline.addTween(createjs.Tween.get(btnCont).to({scaleX:1, scaleY:1, alpha:1}).to({scaleX:1, scaleY:1, alpha:0.8}, 10).to({alpha:1}, 10));
+				btn.gotoAndStop(0);
+
+				btn.addEventListener("click", function(event)
+						{btn.gotoAndStop(10);stage.update();
+							onClickFunction(event.currentTarget);});
+				btn.addEventListener("mousedown", function()
+						{btn.gotoAndStop(20);stage.update();});
+				btn.addEventListener("mouseover", function()
+						{btn.gotoAndStop(10);stage.update();});
+				btn.addEventListener("mouseout", function()
+						{btn.gotoAndStop(0);stage.update();});
+				return btn;
+			}
+
+			function removeDisplayObjects(){
+				var numChildren=stage.getNumChildren();
+				
+				
+				for (i=0;i<(numChildren);i++){
+					
+					createjs.Tween.get(stage.getChildAt(i)).to({alpha:0, scaleX:0.01}, aniWait, createjs.Ease.bounceOut).call(removeDisplayObjectsComplete);
+						
+				}
+			}
+			function removeDisplayObjectsComplete(event){
+
+				stage.removeChild(event.target);
+				event.target.alpha=1;
+			}
+
+			function animateToStage(arrToAdd){
+
+				for (i=0; i<arrToAdd.length; i++){
+
+					arrToAdd[i].alpha=0;
+					arrToAdd[i].scaleX=0.01;
+					stage.addChild(arrToAdd[i]);
+					createjs.Tween.get(arrToAdd[i]).to({scaleX:1, alpha:1},aniWait, createjs.Ease.bounceOut);
+					
+				}
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		</script>
+		<style type="text/css">
+			body {
+   				overflow:hidden;
+			}
+
+			.gradientClass{
+				background-image: -webkit-gradient(
+	linear,
+	left top,
+	left bottom,
+	color-stop(0.37, #000000),
+	color-stop(1, #242424)
+);
+background-image: -o-linear-gradient(bottom, #000000 37%, #242424 100%);
+background-image: -moz-linear-gradient(bottom, #000000 37%, #242424 100%);
+background-image: -webkit-linear-gradient(bottom, #000000 37%, #242424 100%);
+background-image: -ms-linear-gradient(bottom, #000000 37%, #242424 100%);
+background-image: linear-gradient(to bottom, #000000 37%, #242424 100%);
+		</style>
+	</head>
+
+	<body onload="init()"  bgcolor="#000000">
+		<canvas id="main_canvas" width="500" height="500">
+			Alternative Content
+		</canvas>
+		<!--canvas{width:  100%;height: 100%;margin: 0px;}-->
+	</body>
+</html>	

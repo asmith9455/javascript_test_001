@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title></title>
+		<script src="http://code.createjs.com/createjs-2013.12.12.min.js"></script>
+		<script>
+
+		var stage;
+
+		function init()
+		{
+
+			stage = new createjs.Stage("myCanvas");
+			createjs.Sound.registerPlugins([createjs.WebAudioPlugin, createjs.FlashPlugin]);
+ 			createjs.Sound.alternateExtensions = ["mp3"];
+ 			createjs.Sound.addEventListener("fileload", createjs.proxy(this.handleComplete, (this));
+ 			createjs.Sound.registerSound("assets/pop.mp3", "sound");
+		}
+
+ 
+
+		function handleComplete(event)
+		{
+			alert("hello");
+			
+			var ball = new createjs.Shape();
+			ball.addEventListener("click", handleClick);
+			ball.graphics.beginFill("#000000").drawCircle(0,0,50);
+			ball.x=50;
+			ball.y=200;
+
+			createjs.Tween.get(ball, {loop:true}).to({x:450}, 3000).to({x:50}, 3000);
+			createjs.Ticker.addEventListener("tick", tick);
+
+			stage.addChild(ball);
+			
+		}
+
+		function handleClick(event)
+		{
+			//alert("clicked")
+			createjs.Sound.play("sound");
+
+		}
+
+		function tick(event)
+		{
+			stage.update();
+		}
+
+		</script>
+	</head>
+
+	<body onload="init()">
+		<canvas id = "myCanvas" width = "500" height="500">
+			Alternative Content
+		</canvas>
+	<body>
+</html>

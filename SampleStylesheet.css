@@ -1,0 +1,13 @@
+input[type=button]{
+    font-family: 'Franklin Gothic';
+    font-size: 2em;
+    color:Black; 
+    background-color: #00FF00; 
+    border-color: #00FF00;
+    width: 10em;
+    height: 5em;
+}
+
+html, body { 
+  overflow: hidden;
+}
